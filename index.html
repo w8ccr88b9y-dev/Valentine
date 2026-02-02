@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Will you be my Valentine?</title>
+  <meta name="description" content="A tiny loving question.">
+  <style>
+    :root {
+      --bg: #fff6f8;
+      --text: #2a2a2a;
+      --accent: #ff4d6d;
+      --btn-yes: #ff4d6d;
+      --btn-yes-2: #ff6f85;
+      --shadow: rgba(0,0,0,0.10);
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: radial-gradient(1100px 700px at 70% -10%, #ffe0e8, transparent) var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
+    }
+    .wrap {
+      min-height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 14px 36px var(--shadow);
+      padding: 30px 24px 34px;
+      width: min(92vw, 560px);
+      text-align: center;
+      position: relative;
+      isolation: isolate;
+    }
+    h1 { margin: 0 0 10px; font-size: clamp(28px, 5vw, 40px); line-height: 1.1; }
+    p  { margin: 0 0 22px; color: #444; font-size: clamp(16px, 2.4vw, 18px); }
+    .heart { font-size: 34px; color: var(--accent); filter: drop-shadow(0 3px 6px rgba(255,77,109,.25)); animation: float 3s ease-in-out infinite; }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+
+    .btns { margin-top: 18px; display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; position: relative; min-height: 44px; }
+    button {
+      appearance: none; border: 0; border-radius: 999px; padding: 12px 20px; font-size: 16px; cursor: pointer;
+      background: #fff; color: #222; box-shadow: 0 6px 16px var(--shadow);
+      transition: transform .12s ease, box-shadow .2s ease, background .2s ease; position: relative; z-index: 2;
+    }
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); box-shadow: 0 2px 8px var(--shadow); }
+    .yes { background: linear-gradient(135deg, var(--btn-yes), var(--btn-yes-2)); color: #fff; }
+    .no  { background: #fff; color: #333; position: absolute; left: 50%; transform: translateX(-50%); }
+
+    .footer { margin-top: 14px; font-size: 13px; color: #666; min-height: 18px; }
+    .confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 999; }
+
+    @media (max-width: 420px) { .no { font-size: 15px; padding: 11px 18px; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" role="dialog" aria-labelledby="title" aria-describedby="desc">
+      <div class="heart" aria-hidden="true">❤️</div>
+      <h1 id="title">Will you be my valentine?</h1>
+      <p id="desc">I made you a tiny website because you deserve cute things.</p>
+
+      <div class="btns" id="btns">
+        <button class="yes" id="yesBtn" aria-label="Yes">Yes 💗</button>
+        <button class="no" id="noBtn" aria-label="No">No</button>
+      </div>
+
+      <div class="footer" id="footer">P.S. You can still try to click “No”… if you can 😇</div>
+    </div>
+  </div>
+
+  <div class="confetti" id="confetti"></div>
+
+  <script>
+    /******** Settings ********/
+    // Paste your Notion page URL here. It must be a public/shared link.
+    const NOTION_LINK = "https://www.notion.so/Valentine-s-Day-2fb5cdc947c1801e97c2c15d911d2186?source=copy_link";
+
+    /******** Runtime ********/
+    const noBtn = document.getElementById('noBtn');
+    const yesBtn = document.getElementById('yesBtn');
+    const confettiWrap = document.getElementById('confetti');
+
+    function placeNoRandomly(avoidRect) {
+      const padding = 10;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+
+      const maxX = vw - noBtn.offsetWidth - padding;
+      const maxY = vh - noBtn.offsetHeight - padding;
+
+      let x, y, tries = 0, safe = false;
+      do {
+        x = Math.random() * maxX + padding / 2;
+        y = Math.random() * maxY + padding / 2;
+        const noRect = { left: x, top: y, right: x + noBtn.offsetWidth, bottom: y + noBtn.offsetHeight };
+        if (!avoidRect) { safe = true; break; }
+        const overlap = !(noRect.right < avoidRect.left || noRect.left > avoidRect.right || noRect.bottom < avoidRect.top || noRect.top > avoidRect.bottom);
+        safe = !overlap;
+        tries++;
+      } while (!safe && tries < 20);
+
+      noBtn.style.left = x + 'px';
+      noBtn.style.top = y + 'px';
+    }
+
+    window.addEventListener('load', () => {
+      placeNoRandomly(document.getElementById('yesBtn').getBoundingClientRect());
+    });
+
+    // Desktop dodge
+    noBtn.addEventListener('mouseenter', (e) => {
+      const pointerRect = { left: e.clientX - 30, top: e.clientY - 30, right: e.clientX + 30, bottom: e.clientY + 30 };
+      placeNoRandomly(pointerRect);
+    });
+
+    // Mobile dodge
+    noBtn.addEventListener('touchstart', (e) => {
+      const t = e.touches[0];
+      const pointerRect = { left: t.clientX - 40, top: t.clientY - 40, right: t.clientX + 40, bottom: t.clientY + 40 };
+      placeNoRandomly(pointerRect);
+      e.preventDefault();
+    }, { passive: false });
+
+    // If they somehow click No anyway
+    noBtn.addEventListener('click', () => {
+      placeNoRandomly(yesBtn.getBoundingClientRect());
+    });
+
+    // Yes behavior
+    yesBtn.addEventListener('click', () => {
+      yesBtn.textContent = "Just like I hoped 😊";
+      document.getElementById('footer').textContent = "Best. Decision. Ever.";
+      burstConfetti();
+      if (NOTION_LINK && typeof NOTION_LINK === "string") {
+        setTimeout(() => { window.location.href = NOTION_LINK; }, 1600);
+      }
+    });
+
+    // Minimal confetti
+    function burstConfetti() {
+      const colors = ['#ff4d6d', '#ff99ad', '#ffd166', '#06d6a0', '#4cc9f0', '#f72585'];
+      const N = 120;
+      for (let i = 0; i < N; i++) {
+        const piece = document.createElement('div');
+        const size = 6 + Math.random() * 6;
+        piece.style.position = 'absolute';
+        piece.style.left = (Math.random() * 100) + 'vw';
+        piece.style.top = '-10px';
+        piece.style.width = size + 'px';
+        piece.style.height = (size * (0.6 + Math.random())) + 'px';
+        piece.style.background = colors[(Math.random() * colors.length) | 0];
+        piece.style.opacity = 0.9;
+        piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+        piece.style.borderRadius = Math.random() > .5 ? '2px' : '999px';
+        confettiWrap.appendChild(piece);
+
+        const fall = piece.animate([
+          { transform: piece.style.transform + ' translateY(0)', opacity: 1 },
+          { transform: piece.style.transform + ` translate(${(Math.random() * 2 - 1) * 60}px, ${window.innerHeight + 40}px)`, opacity: 1 }
+        ], { duration: 1600 + Math.random() * 800, easing: 'cubic-bezier(.2,.7,.2,1)' });
+
+        fall.onfinish = () => piece.remove();
+      }
+    }
+
+    // Keep the No button in view on resize/rotate
+    window.addEventListener('resize', () => {
+      placeNoRandomly(yesBtn.getBoundingClientRect());
+    });
+  </script>
+</body>
+</html>
